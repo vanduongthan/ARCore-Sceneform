@@ -20,12 +20,20 @@ import android.os.Build
 
 import android.app.Activity
 import android.content.Context
+import android.net.Uri
 import android.view.MotionEvent
 import com.google.ar.core.HitResult
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.collision.Plane
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.*
+import android.view.Gravity
+import com.google.ar.sceneform.assets.RenderableSource
+
+import com.google.ar.sceneform.rendering.ModelRenderable
+
+
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -47,6 +55,7 @@ class MainActivity : AppCompatActivity() {
 
         buildRenderableView()
         creteShapeModel()
+        buildRenderableModelFromIternet()
         setupARFragment()
     }
 
@@ -66,7 +75,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var shapeModel: ModelRenderable
-    
+
     private fun creteShapeModel() {
         MaterialFactory.makeOpaqueWithColor(this, Color(android.graphics.Color.RED))
             .thenAccept { material: Material? ->
@@ -85,8 +94,43 @@ class MainActivity : AppCompatActivity() {
             val anchorNode = AnchorNode(anchor)
             anchorNode.setParent(arFragment!!.arSceneView.scene)
             //anchorNode.renderable = testViewRenderable
-            anchorNode.renderable = shapeModel
+            //anchorNode.renderable = shapeModel
+            anchorNode.renderable = renderableModel
         }
+    }
+
+    private val GLTF_ASSET =
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF/Duck.gltf"
+    private lateinit var renderableModel: ModelRenderable
+
+    private fun buildRenderableModelFromIternet() {
+        ModelRenderable.builder()
+            .setSource(
+                this, RenderableSource.builder().setSource(
+                    this,
+                    Uri.parse(GLTF_ASSET),
+                    RenderableSource.SourceType.GLTF2
+                )
+                    .setScale(0.5f) // Scale the original model to 50%.
+                    .setRecenterMode(RenderableSource.RecenterMode.ROOT)
+                    .build()
+            )
+            .setRegistryId(GLTF_ASSET)
+            .build()
+            .thenAccept(Consumer { renderable: ModelRenderable ->
+                renderableModel = renderable
+                Toast.makeText(this, "3D model is available", Toast.LENGTH_SHORT).show()
+            })
+            .exceptionally(
+                Function<Throwable, Void?> { throwable: Throwable? ->
+                    val toast = Toast.makeText(
+                        this, "Unable to load renderable " +
+                                GLTF_ASSET, Toast.LENGTH_LONG
+                    )
+                    toast.setGravity(Gravity.CENTER, 0, 0)
+                    toast.show()
+                    null
+                })
     }
 
     fun checkIsSupportedDeviceOrFinish(activity: Activity): Boolean {
