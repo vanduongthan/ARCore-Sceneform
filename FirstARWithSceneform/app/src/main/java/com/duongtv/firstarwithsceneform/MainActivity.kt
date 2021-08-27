@@ -44,6 +44,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var button: Button
     private var arFragment: ArFragment? = null
 
+    private val GLTF_ASSET =
+        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF/Duck.gltf"
+    private lateinit var renderableModel: ModelRenderable
+    private lateinit var shapeModel: ModelRenderable
+    private lateinit var androidModel: ModelRenderable
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!checkIsSupportedDeviceOrFinish(this)) {
@@ -56,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         buildRenderableView()
         creteShapeModel()
         buildRenderableModelFromIternet()
+        buildModelFromAssert()
         setupARFragment()
     }
 
@@ -74,7 +81,16 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private lateinit var shapeModel: ModelRenderable
+    private fun buildModelFromAssert() {
+        ModelRenderable.builder()
+            .setSource(this, R.raw.andy)
+            .build()
+            .thenAccept {
+                Log.d(TAG, "onCreate: renderable accepted")
+                androidModel = it
+            }
+    }
+
 
     private fun creteShapeModel() {
         MaterialFactory.makeOpaqueWithColor(this, Color(android.graphics.Color.RED))
@@ -95,13 +111,10 @@ class MainActivity : AppCompatActivity() {
             anchorNode.setParent(arFragment!!.arSceneView.scene)
             //anchorNode.renderable = testViewRenderable
             //anchorNode.renderable = shapeModel
-            anchorNode.renderable = renderableModel
+            //anchorNode.renderable = renderableModel
+            anchorNode.renderable = androidModel
         }
     }
-
-    private val GLTF_ASSET =
-        "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF/Duck.gltf"
-    private lateinit var renderableModel: ModelRenderable
 
     private fun buildRenderableModelFromIternet() {
         ModelRenderable.builder()
