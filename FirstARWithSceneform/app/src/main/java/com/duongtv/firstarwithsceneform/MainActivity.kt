@@ -6,7 +6,6 @@ import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 
-import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
 
 import java.util.function.Consumer
@@ -25,10 +24,8 @@ import android.view.MotionEvent
 import com.google.ar.core.HitResult
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.collision.Plane
-import com.google.ar.sceneform.rendering.ViewRenderable
-
-
-
+import com.google.ar.sceneform.math.Vector3
+import com.google.ar.sceneform.rendering.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -49,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
 
         buildRenderableView()
+        creteShapeModel()
         setupARFragment()
     }
 
@@ -67,7 +65,15 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-
+    private lateinit var shapeModel: ModelRenderable
+    
+    private fun creteShapeModel() {
+        MaterialFactory.makeOpaqueWithColor(this, Color(android.graphics.Color.RED))
+            .thenAccept { material: Material? ->
+               shapeModel  =
+                    ShapeFactory.makeSphere(0.1f, Vector3(0.0f, 0.15f, 0.0f), material)
+            }
+    }
 
     private fun setupARFragment() {
         arFragment?.setOnTapArPlaneListener { hitResult, plane, motionEvent ->
@@ -78,7 +84,8 @@ class MainActivity : AppCompatActivity() {
             val anchor = hitResult.createAnchor()
             val anchorNode = AnchorNode(anchor)
             anchorNode.setParent(arFragment!!.arSceneView.scene)
-            anchorNode.renderable = testViewRenderable
+            //anchorNode.renderable = testViewRenderable
+            anchorNode.renderable = shapeModel
         }
     }
 
