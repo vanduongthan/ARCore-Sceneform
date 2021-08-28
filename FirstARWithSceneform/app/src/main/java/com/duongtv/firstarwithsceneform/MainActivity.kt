@@ -31,9 +31,7 @@ import android.view.Gravity
 import com.google.ar.sceneform.assets.RenderableSource
 
 import com.google.ar.sceneform.rendering.ModelRenderable
-
-
-
+import com.google.ar.sceneform.ux.TransformableNode
 
 
 class MainActivity : AppCompatActivity() {
@@ -49,6 +47,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var renderableModel: ModelRenderable
     private lateinit var shapeModel: ModelRenderable
     private lateinit var androidModel: ModelRenderable
+    private lateinit var gamingChairFromRawFolder: ModelRenderable
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,10 +58,11 @@ class MainActivity : AppCompatActivity() {
 
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
 
-        buildRenderableView()
-        creteShapeModel()
+        //buildRenderableView()
+        //creteShapeModel()
         buildRenderableModelFromIternet()
         buildModelFromAssert()
+        //buildModelFromGLBFile()
         setupARFragment()
     }
 
@@ -81,12 +81,40 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+    private fun buildModelFromGLBFile() {
+        /*ModelRenderable.builder()
+            .setSource(
+                this,
+                Uri.parse(
+                    "https://storage.googleapis.com/ar-answers-in-search-models/static/Tiger/model.glb"
+                )
+            )
+            .build()
+            .thenAccept(Consumer { renderable: ModelRenderable ->
+                renderableModel = renderable
+                Toast.makeText(this, "3D model is available", Toast.LENGTH_SHORT).show()
+            })
+            .exceptionally(
+                Function<Throwable, Void?> { throwable: Throwable? ->
+
+                    runOnUiThread{
+                        val toast = Toast.makeText(
+                            this, "Unable to load renderable " +
+                                    GLTF_ASSET, Toast.LENGTH_LONG
+                        )
+                        toast.setGravity(Gravity.CENTER, 0, 0)
+                        toast.show()
+                    }
+                    null
+                })*/
+    }
+
     private fun buildModelFromAssert() {
         ModelRenderable.builder()
             .setSource(this, R.raw.andy)
             .build()
             .thenAccept {
-                Log.d(TAG, "onCreate: renderable accepted")
+                Toast.makeText(this, "assert is ready", Toast.LENGTH_SHORT).show()
                 androidModel = it
             }
     }
@@ -99,20 +127,32 @@ class MainActivity : AppCompatActivity() {
                     ShapeFactory.makeSphere(0.1f, Vector3(0.0f, 0.15f, 0.0f), material)
             }
     }
-
+    private var parentAnchorNode: AnchorNode ?= null
+    var transformableNodeParent: TransformableNode? = null
     private fun setupARFragment() {
         arFragment?.setOnTapArPlaneListener { hitResult, plane, motionEvent ->
-            if (testViewRenderable == null) {
-                return@setOnTapArPlaneListener
-            }
             //Create the anchor
-            val anchor = hitResult.createAnchor()
-            val anchorNode = AnchorNode(anchor)
-            anchorNode.setParent(arFragment!!.arSceneView.scene)
+
             //anchorNode.renderable = testViewRenderable
             //anchorNode.renderable = shapeModel
             //anchorNode.renderable = renderableModel
-            anchorNode.renderable = androidModel
+            //anchorNode.renderable = androidModel
+            //create the transformable object and add it to the anchor
+            if (transformableNodeParent == null) {
+                val anchor = hitResult.createAnchor()
+                parentAnchorNode = AnchorNode(anchor)
+                parentAnchorNode!!.setParent(arFragment!!.arSceneView.scene)
+                transformableNodeParent = TransformableNode(arFragment!!.transformationSystem)
+                transformableNodeParent!!.setParent(parentAnchorNode)
+                transformableNodeParent!!.renderable = androidModel
+                transformableNodeParent!!.select()
+            } else {
+                //create children node grouped with parent node
+                val anchor = hitResult.createAnchor()
+                val anchorNode = AnchorNode(anchor)
+                anchorNode!!.setParent(transformableNodeParent)
+                anchorNode.renderable = androidModel
+            }
         }
     }
 
