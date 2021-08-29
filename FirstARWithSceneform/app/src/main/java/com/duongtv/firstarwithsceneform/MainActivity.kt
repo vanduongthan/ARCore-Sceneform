@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.TextView
 
 import com.google.ar.sceneform.ux.ArFragment
 
@@ -21,16 +20,17 @@ import android.os.Build
 import android.app.Activity
 import android.content.Context
 import android.net.Uri
-import android.view.MotionEvent
-import com.google.ar.core.HitResult
 import com.google.ar.sceneform.AnchorNode
-import com.google.ar.sceneform.collision.Plane
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.*
 import android.view.Gravity
+import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.assets.RenderableSource
+import com.google.ar.sceneform.collision.Box
+import com.google.ar.sceneform.math.Quaternion
 
 import com.google.ar.sceneform.rendering.ModelRenderable
+import com.google.ar.sceneform.ux.FootprintSelectionVisualizer
 import com.google.ar.sceneform.ux.TransformableNode
 
 
@@ -49,6 +49,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var androidModel: ModelRenderable
     private lateinit var gamingChairFromRawFolder: ModelRenderable
 
+    private var footprintSelectionVisualizer = CircleArrowSelectionVisualizer()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!checkIsSupportedDeviceOrFinish(this)) {
@@ -58,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
         arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment?
 
-        //buildRenderableView()
+        buildRenderableView()
         //creteShapeModel()
         buildRenderableModelFromIternet()
         buildModelFromAssert()
@@ -71,13 +73,15 @@ class MainActivity : AppCompatActivity() {
             .setView(this, R.layout.renderable_view)
             .build()
             .thenAccept {
-                Log.d(TAG, "onCreate: renderable accepted")
                 testViewRenderable = it
+                Log.d(TAG, "onCreate: renderable accepted")
+                /*testViewRenderable = it
                 button = testViewRenderable?.getView()?.findViewById(R.id.btnChangeColor) as Button
                 button.setOnClickListener {
                     it.setBackgroundColor(Utils.randomColor())
+                    //createFootPrintIsCircleArrowBelowModel()
                     Log.d(TAG, "onCreate: button clicked")
-                }
+                }*/
             }
     }
 
@@ -128,30 +132,28 @@ class MainActivity : AppCompatActivity() {
             }
     }
     private var parentAnchorNode: AnchorNode ?= null
-    var transformableNodeParent: TransformableNode? = null
+    var model: TransformableNode? = null
     private fun setupARFragment() {
+        arFragment!!.transformationSystem.selectionVisualizer = footprintSelectionVisualizer
         arFragment?.setOnTapArPlaneListener { hitResult, plane, motionEvent ->
-            //Create the anchor
-
-            //anchorNode.renderable = testViewRenderable
-            //anchorNode.renderable = shapeModel
-            //anchorNode.renderable = renderableModel
-            //anchorNode.renderable = androidModel
-            //create the transformable object and add it to the anchor
-            if (transformableNodeParent == null) {
+            //create the transformable object and add it to the anchor, it is a plane
+            if (model == null) {
                 val anchor = hitResult.createAnchor()
                 parentAnchorNode = AnchorNode(anchor)
                 parentAnchorNode!!.setParent(arFragment!!.arSceneView.scene)
-                transformableNodeParent = TransformableNode(arFragment!!.transformationSystem)
-                transformableNodeParent!!.setParent(parentAnchorNode)
-                transformableNodeParent!!.renderable = androidModel
-                transformableNodeParent!!.select()
-            } else {
-                //create children node grouped with parent node
-                val anchor = hitResult.createAnchor()
-                val anchorNode = AnchorNode(anchor)
-                anchorNode!!.setParent(transformableNodeParent)
-                anchorNode.renderable = androidModel
+                model = TransformableNode(arFragment!!.transformationSystem)
+                model!!.setParent(parentAnchorNode)
+                model!!.renderable = androidModel
+                model!!.select()
+
+                //Tạo chân đế cho model chỉ hiển thị khi nhấp vào model
+                val chilNode = Node()
+                chilNode!!.worldRotation = Quaternion.axisAngle(Vector3.right(), -90.0f) //mặc định view sẽ hiển thị theo chiều dọc nên cần xoay nó nằm ngang
+                chilNode.localPosition = Vector3(0f, 0.0f, 0.25f) //Sau khi xoay view sẽ không nằm chính giữa anchor nên cần dịch chuyển vị trí theo trục OZ
+                chilNode.renderable = testViewRenderable
+
+                footprintSelectionVisualizer.footprintNode = chilNode //thay đổi vòng xám mặc định thành model của mình
+
             }
         }
     }
@@ -164,7 +166,7 @@ class MainActivity : AppCompatActivity() {
                     Uri.parse(GLTF_ASSET),
                     RenderableSource.SourceType.GLTF2
                 )
-                    .setScale(0.5f) // Scale the original model to 50%.
+                    .setScale(0.1f) // Scale the original model to 50%.
                     .setRecenterMode(RenderableSource.RecenterMode.ROOT)
                     .build()
             )
@@ -172,7 +174,8 @@ class MainActivity : AppCompatActivity() {
             .build()
             .thenAccept(Consumer { renderable: ModelRenderable ->
                 renderableModel = renderable
-                Toast.makeText(this, "3D model is available", Toast.LENGTH_SHORT).show()
+                //footprintSelectionVisualizer.footprintRenderable = renderableModel
+                Toast.makeText(this, "render 3D model from internet is success", Toast.LENGTH_SHORT).show()
             })
             .exceptionally(
                 Function<Throwable, Void?> { throwable: Throwable? ->
