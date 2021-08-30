@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupARFragment() {
         arFragment!!.transformationSystem.selectionVisualizer = footprintSelectionVisualizer
         arFragment?.setOnTapArPlaneListener { hitResult, plane, motionEvent ->
-            //create the transformable object and add it to the anchor, it is a plane
+            //Tạo 3d model và thay đổi chân đế mặc định hiển thị khi nhấp vào model
             if (model == null) {
                 val anchor = hitResult.createAnchor()
                 parentAnchorNode = AnchorNode(anchor)
@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity() {
                 //Tạo chân đế cho model chỉ hiển thị khi nhấp vào model
                 val chilNode = Node()
                 chilNode!!.worldRotation = Quaternion.axisAngle(Vector3.right(), -90.0f) //mặc định view sẽ hiển thị theo chiều dọc nên cần xoay nó nằm ngang
-                chilNode.localPosition = Vector3(0f, 0.0f, 0.25f) //Sau khi xoay view sẽ không nằm chính giữa anchor nên cần dịch chuyển vị trí theo trục OZ
+                chilNode.localPosition = Vector3(0f, 0.0f, 0.11f) //Sau khi xoay view sẽ không nằm chính giữa anchor nên cần dịch chuyển vị trí theo trục OZ
                 chilNode.renderable = testViewRenderable
 
                 footprintSelectionVisualizer.footprintNode = chilNode //thay đổi vòng xám mặc định thành model của mình
