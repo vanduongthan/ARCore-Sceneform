@@ -144,6 +144,8 @@ class MainActivity : AppCompatActivity() {
     private fun setupARFragment() {
         arFragment!!.transformationSystem.selectionVisualizer = footprintSelectionVisualizer
         arFragment?.setOnTapArPlaneListener { hitResult, plane, motionEvent ->
+            imgRotateArrow?.visibility = View.VISIBLE
+            imgZoomArrow?.visibility = View.GONE
             //Tạo 3d model và thay đổi chân đế mặc định hiển thị khi nhấp vào model
             if (model == null) {
                 val anchor = hitResult.createAnchor()
