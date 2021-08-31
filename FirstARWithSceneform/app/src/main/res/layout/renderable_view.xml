@@ -7,8 +7,16 @@
     android:orientation="vertical">
 
     <ImageView
+        android:id="@+id/imgRotate"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:visibility="visible"
         android:background="@drawable/circle_arrow_blue" />
+    <ImageView
+        android:id="@+id/imgZoom"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:visibility="gone"
+        android:background="@drawable/four_arrow"/>
 
 </RelativeLayout>

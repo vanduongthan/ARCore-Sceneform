@@ -24,6 +24,8 @@ import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.*
 import android.view.Gravity
+import android.view.View
+import android.widget.ImageView
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.collision.Box
@@ -32,6 +34,7 @@ import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.FootprintSelectionVisualizer
 import com.google.ar.sceneform.ux.TransformableNode
+import com.google.ar.sceneform.ux.TranslationController
 
 
 class MainActivity : AppCompatActivity() {
@@ -41,6 +44,8 @@ class MainActivity : AppCompatActivity() {
     private var testViewRenderable: ViewRenderable? = null
     private lateinit var button: Button
     private var arFragment: ArFragment? = null
+    private var imgRotateArrow: ImageView?= null
+    private var imgZoomArrow: ImageView?= null
 
     private val GLTF_ASSET =
         "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF/Duck.gltf"
@@ -74,6 +79,8 @@ class MainActivity : AppCompatActivity() {
             .build()
             .thenAccept {
                 testViewRenderable = it
+                imgRotateArrow = testViewRenderable?.getView()?.findViewById(R.id.imgRotate) as ImageView
+                imgZoomArrow = testViewRenderable?.getView()?.findViewById(R.id.imgZoom) as ImageView
                 Log.d(TAG, "onCreate: renderable accepted")
                 /*testViewRenderable = it
                 button = testViewRenderable?.getView()?.findViewById(R.id.btnChangeColor) as Button
@@ -145,13 +152,23 @@ class MainActivity : AppCompatActivity() {
                 model!!.setParent(parentAnchorNode)
                 model!!.renderable = androidModel
                 model!!.select()
+                model!!.setOnTouchListener { hitTestResult, motionEvent ->
+                    Log.d(TAG, "model: $motionEvent")
 
+                    false
+                }
+               
                 //Tạo chân đế cho model chỉ hiển thị khi nhấp vào model
                 val chilNode = Node()
                 chilNode!!.worldRotation = Quaternion.axisAngle(Vector3.right(), -90.0f) //mặc định view sẽ hiển thị theo chiều dọc nên cần xoay nó nằm ngang
                 chilNode.localPosition = Vector3(0f, 0.0f, 0.11f) //Sau khi xoay view sẽ không nằm chính giữa anchor nên cần dịch chuyển vị trí theo trục OZ
                 chilNode.renderable = testViewRenderable
-
+                chilNode.setOnTouchListener { hitTestResult, motionEvent ->
+                    Log.d(TAG, "footprint: $motionEvent")
+                    imgRotateArrow?.visibility = View.GONE
+                    imgZoomArrow?.visibility = View.VISIBLE
+                    false
+                }
                 footprintSelectionVisualizer.footprintNode = chilNode //thay đổi vòng xám mặc định thành model của mình
 
             }
