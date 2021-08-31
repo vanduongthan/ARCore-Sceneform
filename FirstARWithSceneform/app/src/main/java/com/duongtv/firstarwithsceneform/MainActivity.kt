@@ -24,6 +24,7 @@ import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.*
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import com.google.ar.sceneform.Node
@@ -154,10 +155,13 @@ class MainActivity : AppCompatActivity() {
                 model!!.select()
                 model!!.setOnTouchListener { hitTestResult, motionEvent ->
                     Log.d(TAG, "model: $motionEvent")
-
+                    if (motionEvent.action == MotionEvent.ACTION_MOVE) {
+                        imgRotateArrow?.visibility = View.GONE
+                        imgZoomArrow?.visibility = View.VISIBLE
+                    }
                     false
                 }
-               
+
                 //Tạo chân đế cho model chỉ hiển thị khi nhấp vào model
                 val chilNode = Node()
                 chilNode!!.worldRotation = Quaternion.axisAngle(Vector3.right(), -90.0f) //mặc định view sẽ hiển thị theo chiều dọc nên cần xoay nó nằm ngang
@@ -165,8 +169,6 @@ class MainActivity : AppCompatActivity() {
                 chilNode.renderable = testViewRenderable
                 chilNode.setOnTouchListener { hitTestResult, motionEvent ->
                     Log.d(TAG, "footprint: $motionEvent")
-                    imgRotateArrow?.visibility = View.GONE
-                    imgZoomArrow?.visibility = View.VISIBLE
                     false
                 }
                 footprintSelectionVisualizer.footprintNode = chilNode //thay đổi vòng xám mặc định thành model của mình
